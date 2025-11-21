@@ -55,7 +55,9 @@ const Kanban: React.FC = () => {
                             <div className="flex justify-between items-start mb-2">
                                 <span className="text-xs font-mono text-slate-500 font-medium">{os.id}</span>
                                 {os.parts.some(p => p.status === 'Solicitado') && (
-                                    <AlertTriangle size={14} className="text-amber-500" title="Peças pendentes" />
+                                    <div title="Peças pendentes">
+                                        <AlertTriangle size={14} className="text-amber-500" />
+                                    </div>
                                 )}
                             </div>
                             <h4 className="font-bold text-gray-800 text-sm mb-1">{os.vehicle.model}</h4>
