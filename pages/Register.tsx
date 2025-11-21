@@ -124,7 +124,7 @@ const Register: React.FC = () => {
         <div 
             className="absolute inset-0 bg-cover bg-center z-0"
             style={{ 
-                backgroundImage: "url('https://images.unsplash.com/photo-1562519819-016930ada31b?q=80&w=2670&auto=format&fit=crop')" 
+                backgroundImage: "url('https://escwcpcpdbwfdairdacp.supabase.co/storage/v1/object/sign/VictorCarvalho/_MG_4771.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iNzhjOWUxYy03ODJhLTRlMGEtODRjOC1iMmFhYWNiMmYxNjYiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJWaWN0b3JDYXJ2YWxoby9fTUdfNDc3MS5qcGciLCJpYXQiOjE3NjM3NjgzNTAsImV4cCI6MTc5NTMwNDM1MH0.aR8TbdKwi0aIHBPpZXjkunF1CG2aHl4C97iWG5WAU3o')" 
             }}
         ></div>
         <div className="absolute inset-0 bg-gradient-to-br from-blue-900/90 to-purple-900/80 z-10"></div>
