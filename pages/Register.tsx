@@ -55,7 +55,7 @@ const Register: React.FC = () => {
 
       setSuccessMsg('Cadastro iniciado! Verifique seu e-mail (inclusive Spam).');
       setStep('otp');
-      setResendTimer(60); // Inicia contagem para permitir reenvio
+      setResendTimer(60);
     } catch (err: any) {
       setError(err.message || 'Erro ao cadastrar.');
     } finally {
@@ -105,7 +105,7 @@ const Register: React.FC = () => {
       if (error) throw error;
 
       if (data.session) {
-        navigate('/'); // Redireciona para o dashboard logado
+        navigate('/');
       } else {
           navigate('/login');
       }
@@ -118,163 +118,177 @@ const Register: React.FC = () => {
   };
 
   return (
-    <div 
-      className="min-h-screen flex items-center justify-center relative bg-cover bg-center"
-      style={{ 
-        // Substitua esta URL pela URL da sua foto se desejar
-        backgroundImage: "url('https://images.unsplash.com/photo-1562519819-016930ada31b?q=80&w=2670&auto=format&fit=crop')" 
-      }}
-    >
-      {/* Overlay Escuro */}
-      <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm"></div>
-
-      <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl w-full max-w-md p-8 z-10 mx-4 border border-white/20">
-        <div className="text-center mb-8">
-          <div className="bg-blue-600 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-600/30">
-            <Wrench size={32} className="text-white" />
-          </div>
-          <h1 className="text-2xl font-bold text-gray-800">Crie sua conta</h1>
-          <p className="text-gray-500 mt-2">Gestão de Funilaria e Pintura</p>
+    <div className="min-h-screen flex w-full">
+      {/* Lado Esquerdo - Imagem (Escondido em mobile) */}
+      <div className="hidden lg:flex lg:w-[60%] relative bg-slate-900 overflow-hidden">
+        <div 
+            className="absolute inset-0 bg-cover bg-center z-0"
+            style={{ 
+                backgroundImage: "url('https://images.unsplash.com/photo-1562519819-016930ada31b?q=80&w=2670&auto=format&fit=crop')" 
+            }}
+        ></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-900/90 to-purple-900/80 z-10"></div>
+        
+        <div className="relative z-20 flex flex-col justify-center px-16 text-white">
+            <div className="bg-white/10 backdrop-blur-md w-20 h-20 rounded-2xl flex items-center justify-center mb-8 border border-white/20 shadow-2xl">
+                <Wrench size={40} className="text-white" />
+            </div>
+            <h1 className="text-5xl font-bold mb-6 leading-tight">
+                Comece sua jornada com o AutoFix Pro
+            </h1>
+            <p className="text-xl text-blue-100 max-w-lg leading-relaxed">
+                Junte-se a oficinas modernas que utilizam inteligência artificial para gerenciar serviços e faturar mais.
+            </p>
         </div>
+      </div>
 
-        {error && (
-          <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm flex items-center gap-2 border border-red-100 mb-4 animate-pulse">
-            <AlertCircle size={16} />
-            {error}
-          </div>
-        )}
-
-        {successMsg && (
-          <div className="bg-green-50 text-green-600 p-3 rounded-lg text-sm flex items-center gap-2 border border-green-100 mb-4">
-            <Check size={16} />
-            {successMsg}
-          </div>
-        )}
-
-        {step === 'register' ? (
-            <form onSubmit={handleRegister} className="space-y-4">
-            <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Mail size={18} className="text-gray-400" />
-                </div>
-                <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-white/50 focus:bg-white"
-                    placeholder="seu@email.com"
-                />
-                </div>
+      {/* Lado Direito - Formulário */}
+      <div className="w-full lg:w-[40%] flex items-center justify-center bg-white p-8">
+        <div className="w-full max-w-md space-y-8">
+            <div className="text-center lg:text-left">
+                <h2 className="text-3xl font-bold text-gray-900">Criar Conta</h2>
+                <p className="text-gray-500 mt-2">Preencha os dados para começar.</p>
             </div>
 
-            <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Senha</label>
-                <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Lock size={18} className="text-gray-400" />
-                </div>
-                <input
-                    type="password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-white/50 focus:bg-white"
-                    placeholder="••••••"
-                />
-                </div>
-            </div>
+            {error && (
+              <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm flex items-center gap-2 border border-red-100 animate-pulse">
+                <AlertCircle size={18} />
+                {error}
+              </div>
+            )}
 
-            <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Confirmar Senha</label>
-                <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Lock size={18} className="text-gray-400" />
-                </div>
-                <input
-                    type="password"
-                    required
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-white/50 focus:bg-white"
-                    placeholder="••••••"
-                />
-                </div>
-            </div>
+            {successMsg && (
+              <div className="bg-green-50 text-green-600 p-4 rounded-xl text-sm flex items-center gap-2 border border-green-100">
+                <Check size={18} />
+                {successMsg}
+              </div>
+            )}
 
-            <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg shadow-blue-600/20 mt-6 disabled:opacity-70 transform hover:scale-[1.02] active:scale-[0.98]"
-            >
-                {isLoading ? 'Enviando...' : 'Criar Conta'}
-                {!isLoading && <ArrowRight size={18} />}
-            </button>
-            </form>
-        ) : (
-            <form onSubmit={handleVerifyOtp} className="space-y-4">
-                <div className="text-center mb-4 p-4 bg-blue-50 rounded-lg border border-blue-100">
-                    <p className="text-sm text-gray-800 mb-1">
-                        Um código de verificação foi enviado para:
-                    </p>
-                    <p className="font-bold text-blue-800 break-all">{email}</p>
-                    <p className="text-xs text-gray-500 mt-2">
-                        Não encontrou? Verifique sua caixa de <strong>Spam</strong>.
-                    </p>
+            {step === 'register' ? (
+                <form onSubmit={handleRegister} className="space-y-5">
+                <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Email</label>
+                    <div className="relative group">
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <Mail size={20} className="text-gray-400 group-focus-within:text-blue-600 transition-colors" />
+                        </div>
+                        <input
+                            type="email"
+                            required
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            className="block w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-500 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                            placeholder="seu@email.com"
+                        />
+                    </div>
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Código de Verificação</label>
-                    <div className="relative">
-                    <input
-                        type="text"
-                        required
-                        value={otp}
-                        onChange={(e) => setOtp(e.target.value)}
-                        className="block w-full px-3 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-center tracking-widest text-xl font-mono bg-white/50 focus:bg-white"
-                        placeholder="12345678"
-                        maxLength={8}
-                    />
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Senha</label>
+                    <div className="relative group">
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <Lock size={20} className="text-gray-400 group-focus-within:text-blue-600 transition-colors" />
+                        </div>
+                        <input
+                            type="password"
+                            required
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="block w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-500 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                            placeholder="••••••••"
+                        />
+                    </div>
+                </div>
+
+                <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Confirmar Senha</label>
+                    <div className="relative group">
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <Lock size={20} className="text-gray-400 group-focus-within:text-blue-600 transition-colors" />
+                        </div>
+                        <input
+                            type="password"
+                            required
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            className="block w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-500 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                            placeholder="••••••••"
+                        />
                     </div>
                 </div>
 
                 <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg mt-6 disabled:opacity-70 transform hover:scale-[1.02] active:scale-[0.98]"
+                    className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-4 rounded-xl transition-all shadow-lg shadow-blue-600/20 mt-2 disabled:opacity-70 transform hover:scale-[1.01] active:scale-[0.99]"
                 >
-                    {isLoading ? 'Validando...' : 'Confirmar Cadastro'}
-                    {!isLoading && <Check size={18} />}
+                    {isLoading ? 'Enviando...' : 'Criar Conta'}
+                    {!isLoading && <ArrowRight size={20} />}
                 </button>
+                </form>
+            ) : (
+                <form onSubmit={handleVerifyOtp} className="space-y-6">
+                    <div className="text-center p-6 bg-blue-50 rounded-xl border border-blue-100">
+                        <p className="text-sm text-gray-800 mb-2">
+                            Enviamos um código de verificação para:
+                        </p>
+                        <p className="font-bold text-lg text-blue-800 break-all">{email}</p>
+                        <p className="text-xs text-gray-500 mt-3">
+                            Verifique sua caixa de entrada e <strong>Spam</strong>.
+                        </p>
+                    </div>
 
-                <div className="flex flex-col gap-3 mt-6">
-                    <button 
-                        type="button"
-                        onClick={handleResendEmail}
-                        disabled={resendTimer > 0 || isLoading}
-                        className="flex items-center justify-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-800 disabled:text-gray-400 disabled:cursor-not-allowed"
+                    <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2 text-center">Código de Verificação</label>
+                        <div className="relative">
+                            <input
+                                type="text"
+                                required
+                                value={otp}
+                                onChange={(e) => setOtp(e.target.value)}
+                                className="block w-full px-4 py-4 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-center tracking-[0.5em] text-2xl font-mono font-bold transition-all"
+                                placeholder="123456"
+                                maxLength={8}
+                            />
+                        </div>
+                    </div>
+
+                    <button
+                        type="submit"
+                        disabled={isLoading}
+                        className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-4 rounded-xl transition-all shadow-lg shadow-green-600/20 disabled:opacity-70 transform hover:scale-[1.01] active:scale-[0.99]"
                     >
-                        <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />
-                        {resendTimer > 0 ? `Reenviar código em ${resendTimer}s` : 'Reenviar código por e-mail'}
+                        {isLoading ? 'Validando...' : 'Confirmar Código'}
+                        {!isLoading && <Check size={20} />}
                     </button>
 
-                    <button 
-                        type="button" 
-                        onClick={() => setStep('register')}
-                        className="text-center text-sm text-gray-500 hover:text-gray-700"
-                    >
-                        Voltar e corrigir e-mail
-                    </button>
-                </div>
-            </form>
-        )}
+                    <div className="flex flex-col gap-3 pt-2">
+                        <button 
+                            type="button"
+                            onClick={handleResendEmail}
+                            disabled={resendTimer > 0 || isLoading}
+                            className="flex items-center justify-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-800 disabled:text-gray-400 disabled:cursor-not-allowed py-2"
+                        >
+                            <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />
+                            {resendTimer > 0 ? `Reenviar código em ${resendTimer}s` : 'Reenviar código por e-mail'}
+                        </button>
 
-        <div className="text-center mt-6 border-t pt-6">
-            <p className="text-sm text-gray-600">
-                Já tem uma conta? <Link to="/login" className="text-blue-600 font-bold hover:underline">Fazer Login</Link>
-            </p>
+                        <button 
+                            type="button" 
+                            onClick={() => setStep('register')}
+                            className="text-center text-sm text-gray-500 hover:text-gray-700 py-1"
+                        >
+                            Corrigir e-mail
+                        </button>
+                    </div>
+                </form>
+            )}
+
+            <div className="text-center pt-4">
+                <p className="text-gray-500">
+                    Já tem uma conta? <Link to="/login" className="text-blue-600 font-bold hover:underline transition-colors">Fazer Login</Link>
+                </p>
+            </div>
         </div>
       </div>
     </div>

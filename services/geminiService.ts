@@ -1,9 +1,14 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { ServiceOrder, Part } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Ideally process.env.API_KEY, but handling graceful fallback/mock if missing in this demo context
+const apiKey = process.env.API_KEY || '';
+
+const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
 export const analyzeOSRisk = async (os: ServiceOrder): Promise<string> => {
+  if (!ai) return "AI não configurada (Sem API Key).";
+
   try {
     const model = "gemini-2.5-flash";
     const prompt = `
@@ -34,6 +39,8 @@ export const analyzeOSRisk = async (os: ServiceOrder): Promise<string> => {
 };
 
 export const suggestParts = async (description: string, carModel: string): Promise<any[]> => {
+   if (!ai) return [];
+   
    try {
      const response = await ai.models.generateContent({
        model: 'gemini-2.5-flash',
@@ -61,6 +68,8 @@ export const suggestParts = async (description: string, carModel: string): Promi
 }
 
 export const estimateWorkload = async (description: string, carModel: string): Promise<{ estimatedDays: number, estimatedLaborCost: number, reasoning: string }> => {
+  if (!ai) return { estimatedDays: 0, estimatedLaborCost: 0, reasoning: "IA não configurada." };
+
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
