@@ -267,37 +267,39 @@ const ServiceOrderDetails: React.FC = () => {
   const TabButton = ({ id, label, icon: Icon }: any) => (
     <button
       onClick={() => setActiveTab(id)}
-      className={`flex items-center gap-2 px-6 py-3 border-b-2 font-medium transition-colors ${
+      className={`flex items-center justify-center gap-2 px-4 py-3 border-b-2 font-medium transition-colors flex-1 sm:flex-none whitespace-nowrap ${
         activeTab === id 
           ? 'border-blue-600 text-blue-600' 
           : 'border-transparent text-gray-500 hover:text-gray-700'
       }`}
     >
       <Icon size={18} />
-      {label}
+      <span className="hidden sm:inline">{label}</span>
     </button>
   );
 
   return (
     <div className="space-y-6 pb-10">
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <button onClick={() => navigate(-1)} className="p-2 hover:bg-gray-200 rounded-full text-gray-600">
-          <ArrowLeft size={24} />
-        </button>
-        <div>
-            <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
-                OS #{order.id} 
-                <span className="text-sm font-normal bg-blue-100 text-blue-700 px-3 py-1 rounded-full border border-blue-200">
-                    {order.vehicle.model} - {order.vehicle.plate}
-                </span>
-            </h1>
+      <div className="flex flex-col md:flex-row md:items-center gap-4">
+        <div className="flex items-center gap-4">
+            <button onClick={() => navigate(-1)} className="p-2 hover:bg-gray-200 rounded-full text-gray-600">
+                <ArrowLeft size={24} />
+            </button>
+            <div>
+                <h1 className="text-xl md:text-2xl font-bold text-gray-800 flex flex-wrap items-center gap-2 md:gap-3">
+                    OS #{order.id} 
+                    <span className="text-xs md:text-sm font-normal bg-blue-100 text-blue-700 px-3 py-1 rounded-full border border-blue-200">
+                        {order.vehicle.model} - {order.vehicle.plate}
+                    </span>
+                </h1>
+            </div>
         </div>
-        <div className="ml-auto flex items-center gap-3">
+        <div className="ml-auto w-full md:w-auto">
              <select 
                 value={order.status} 
                 onChange={(e) => updateOrderStatus(order.id, e.target.value as OSStatus)}
-                className="bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+                className="w-full md:w-auto bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
             >
                 {KANBAN_COLUMNS.map(col => (
                     <option key={col} value={col}>{col}</option>
@@ -307,7 +309,7 @@ const ServiceOrderDetails: React.FC = () => {
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-gray-200 flex">
+      <div className="border-b border-gray-200 flex overflow-x-auto">
         <TabButton id="overview" label="Visão Geral" icon={FileText} />
         <TabButton id="parts" label="Peças e Insumos" icon={Box} />
         <TabButton id="financial" label="Financeiro e Custos" icon={DollarSign} />
@@ -323,7 +325,7 @@ const ServiceOrderDetails: React.FC = () => {
                 <>
                     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                         <h3 className="text-lg font-bold text-gray-800 mb-4">Detalhes do Veículo e Serviço</h3>
-                        <div className="grid grid-cols-2 gap-6 mb-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
                             <div>
                                 <p className="text-sm text-gray-500">Cliente</p>
                                 <p className="font-medium">{order.client.name}</p>
@@ -359,7 +361,7 @@ const ServiceOrderDetails: React.FC = () => {
 
                     {/* AI Section */}
                     <div className="bg-gradient-to-r from-indigo-50 to-purple-50 p-6 rounded-xl border border-indigo-100">
-                        <div className="flex items-center justify-between mb-4">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-4">
                             <div className="flex items-center gap-2 text-indigo-800">
                                 <BrainCircuit size={24} />
                                 <h3 className="text-lg font-bold">Assistente IA Gemini</h3>
@@ -367,7 +369,7 @@ const ServiceOrderDetails: React.FC = () => {
                             <button 
                                 onClick={handleRunAIAnalysis}
                                 disabled={isAnalyzing}
-                                className="text-sm bg-white text-indigo-600 px-4 py-2 rounded-lg border border-indigo-200 font-medium hover:bg-indigo-50 transition-colors disabled:opacity-50"
+                                className="w-full sm:w-auto text-sm bg-white text-indigo-600 px-4 py-2 rounded-lg border border-indigo-200 font-medium hover:bg-indigo-50 transition-colors disabled:opacity-50 text-center"
                             >
                                 {isAnalyzing ? 'Analisando...' : 'Analisar Riscos da OS'}
                             </button>
@@ -386,14 +388,14 @@ const ServiceOrderDetails: React.FC = () => {
 
             {activeTab === 'parts' && (
                  <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <div className="flex justify-between items-center mb-6">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                          <h3 className="text-lg font-bold text-gray-800">Gestão de Peças e Insumos</h3>
-                         <div className="flex gap-2">
-                             <button onClick={handleSuggestParts} className="flex items-center gap-1 text-sm bg-purple-100 text-purple-700 px-3 py-2 rounded-lg hover:bg-purple-200 transition-colors">
+                         <div className="flex gap-2 w-full sm:w-auto">
+                             <button onClick={handleSuggestParts} className="flex-1 sm:flex-none flex items-center justify-center gap-1 text-sm bg-purple-100 text-purple-700 px-3 py-2 rounded-lg hover:bg-purple-200 transition-colors">
                                  <Sparkles size={16} />
                                  Sugerir (IA)
                              </button>
-                             <button onClick={() => setShowPartForm(!showPartForm)} className="flex items-center gap-1 text-sm bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                             <button onClick={() => setShowPartForm(!showPartForm)} className="flex-1 sm:flex-none flex items-center justify-center gap-1 text-sm bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors">
                                  <Plus size={16} />
                                  Adicionar
                              </button>
@@ -440,7 +442,7 @@ const ServiceOrderDetails: React.FC = () => {
                     )}
 
                     <div className="overflow-x-auto">
-                        <table className="w-full text-sm text-left">
+                        <table className="w-full text-sm text-left min-w-[600px]">
                             <thead className="bg-gray-50 text-gray-500 font-medium border-b border-gray-200">
                                 <tr>
                                     <th className="py-3 px-4">Item</th>
@@ -577,7 +579,7 @@ const ServiceOrderDetails: React.FC = () => {
                                 className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 border px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors"
                             >
                                 <Printer size={16} />
-                                Imprimir Relatório
+                                <span className="hidden sm:inline">Imprimir Relatório</span>
                             </button>
                         </div>
 

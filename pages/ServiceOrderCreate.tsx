@@ -171,10 +171,10 @@ const ServiceOrderCreate: React.FC = () => {
 
         {/* Service Info */}
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
+          <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none hidden sm:block">
               <Wand2 size={120} />
           </div>
-          <div className="flex justify-between items-center mb-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
              <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
                 <FileText size={20} className="text-blue-600" />
                 Detalhes do Serviço
@@ -183,7 +183,7 @@ const ServiceOrderCreate: React.FC = () => {
                 type="button"
                 onClick={handleAIEstimate}
                 disabled={isEstimating}
-                className="text-sm bg-purple-100 text-purple-700 px-4 py-2 rounded-lg border border-purple-200 font-medium hover:bg-purple-200 transition-colors flex items-center gap-2"
+                className="w-full sm:w-auto text-sm bg-purple-100 text-purple-700 px-4 py-2 rounded-lg border border-purple-200 font-medium hover:bg-purple-200 transition-colors flex items-center justify-center gap-2"
             >
                 {isEstimating ? <Loader2 className="animate-spin" size={16} /> : <Wand2 size={16} />}
                 Estimar Prazo e Custo (IA)
@@ -236,17 +236,17 @@ const ServiceOrderCreate: React.FC = () => {
         </div>
 
         {/* Actions */}
-        <div className="flex items-center justify-end gap-4 pt-4">
+        <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-4 pt-4">
              <button 
                 type="button" 
                 onClick={() => navigate('/orders')}
-                className="px-6 py-3 rounded-lg text-gray-700 bg-white border border-gray-300 font-medium hover:bg-gray-50 transition-colors"
+                className="w-full sm:w-auto px-6 py-3 rounded-lg text-gray-700 bg-white border border-gray-300 font-medium hover:bg-gray-50 transition-colors text-center"
             >
                 Cancelar
              </button>
              <button 
                 type="submit" 
-                className="px-8 py-3 rounded-lg text-white bg-blue-600 font-bold hover:bg-blue-700 shadow-lg shadow-blue-600/20 transition-all flex items-center gap-2"
+                className="w-full sm:w-auto px-8 py-3 rounded-lg text-white bg-blue-600 font-bold hover:bg-blue-700 shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2"
             >
                 <Save size={20} />
                 Salvar Ordem de Serviço
