@@ -1,14 +1,51 @@
+
 import React, { useMemo, useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend, ComposedChart, Line
 } from 'recharts';
-import { Car, AlertCircle, TrendingUp, DollarSign, Wallet, TrendingDown, ArrowUpRight, ArrowDownRight, Filter } from 'lucide-react';
+import { Car, AlertCircle, TrendingUp, DollarSign, Wallet, TrendingDown, ArrowUpRight, ArrowDownRight, Filter, Calendar, FilterX } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Dashboard: React.FC = () => {
   const { orders } = useAppContext();
   const [filterType, setFilterType] = useState<'all' | 'open' | 'finished'>('all');
+
+  // --- Estados de Filtro de Data ---
+  const [showFilters, setShowFilters] = useState(false);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [monthFilter, setMonthFilter] = useState('');
+
+  // Atalho para selecionar o mês inteiro
+  const handleMonthSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value; // Formato YYYY-MM
+    setMonthFilter(val);
+
+    if (val) {
+      const [year, month] = val.split('-');
+      // Primeiro dia do mês
+      const firstDay = `${val}-01`;
+      
+      // Último dia do mês
+      const lastDayDate = new Date(parseInt(year), parseInt(month), 0);
+      const lastDay = lastDayDate.toISOString().split('T')[0];
+
+      setStartDate(firstDay);
+      setEndDate(lastDay);
+    } else {
+      setStartDate('');
+      setEndDate('');
+    }
+  };
+
+  const clearFilters = () => {
+    setStartDate('');
+    setEndDate('');
+    setMonthFilter('');
+  };
+
+  const hasDateFilters = !!(startDate || endDate || monthFilter);
 
   // --- Lógica de Cálculo Financeiro ---
   const financialData = useMemo(() => {
@@ -31,6 +68,7 @@ const Dashboard: React.FC = () => {
         car: order.vehicle.model,
         plate: order.vehicle.plate,
         status: order.status,
+        entryDate: order.entryDate, // Usado para filtro
         revenue,
         totalCost,
         partsCost,
@@ -41,18 +79,29 @@ const Dashboard: React.FC = () => {
     });
   }, [orders]);
 
-  // Filtra dados com base no status selecionado e se tem movimentação financeira
+  // Filtra dados com base no status selecionado e DATA
   const filteredFinancials = useMemo(() => {
-    const statusFiltered = financialData.filter(item => {
+    let data = financialData;
+
+    // 1. Filtro de Status
+    data = data.filter(item => {
       if (filterType === 'all') return true;
       if (filterType === 'open') return item.status !== 'Finalizado';
       if (filterType === 'finished') return item.status === 'Finalizado';
       return true;
     });
 
+    // 2. Filtro de Data
+    if (startDate) {
+        data = data.filter(item => item.entryDate >= startDate);
+    }
+    if (endDate) {
+        data = data.filter(item => item.entryDate <= endDate);
+    }
+
     // Filtra apenas OS que já têm algum valor financeiro movimentado para os gráficos
-    return statusFiltered.filter(o => o.revenue > 0 || o.totalCost > 0);
-  }, [financialData, filterType]);
+    return data.filter(o => o.revenue > 0 || o.totalCost > 0);
+  }, [financialData, filterType, startDate, endDate]);
 
   // Estatísticas Globais
   const totalRevenue = filteredFinancials.reduce((acc, o) => acc + o.revenue, 0);
@@ -97,22 +146,97 @@ const Dashboard: React.FC = () => {
             <h1 className="text-2xl font-bold text-gray-800">Dashboard Financeiro</h1>
             <p className="text-gray-500">Análise de lucratividade em tempo real por Ordem de Serviço.</p>
         </div>
-        <div className="flex items-center gap-3 bg-white p-1 rounded-lg border border-gray-200 shadow-sm">
-            <div className="px-3 py-2 flex items-center gap-2 text-gray-500 border-r border-gray-100">
-                <Filter size={16} />
-                <span className="text-sm font-medium">Filtrar:</span>
-            </div>
-            <select 
-                value={filterType} 
-                onChange={(e) => setFilterType(e.target.value as any)}
-                className="bg-transparent text-sm font-medium text-gray-700 focus:outline-none py-2 px-2 pr-8 cursor-pointer hover:text-blue-600"
+        
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+            {/* Botão de Filtro de Data */}
+            <button 
+                onClick={() => setShowFilters(!showFilters)}
+                className={`w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 border rounded-lg text-sm font-medium transition-colors ${showFilters || hasDateFilters ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'}`}
             >
-                <option value="all">Todas as Ordens</option>
-                <option value="open">Em Aberto (Andamento)</option>
-                <option value="finished">Finalizadas (Entregues)</option>
-            </select>
+                <Calendar size={18} />
+                {hasDateFilters ? 'Período Ativo' : 'Período'}
+            </button>
+
+            {/* Filtro de Status */}
+            <div className="w-full sm:w-auto flex items-center gap-3 bg-white p-1 rounded-lg border border-gray-200 shadow-sm">
+                <div className="px-3 py-2 flex items-center gap-2 text-gray-500 border-r border-gray-100">
+                    <Filter size={16} />
+                    <span className="text-sm font-medium hidden sm:inline">Status:</span>
+                </div>
+                <select 
+                    value={filterType} 
+                    onChange={(e) => setFilterType(e.target.value as any)}
+                    className="bg-transparent text-sm font-medium text-gray-700 focus:outline-none py-2 px-2 pr-8 cursor-pointer hover:text-blue-600 w-full sm:w-auto"
+                >
+                    <option value="all">Todas as Ordens</option>
+                    <option value="open">Em Aberto (Andamento)</option>
+                    <option value="finished">Finalizadas (Entregues)</option>
+                </select>
+            </div>
         </div>
       </div>
+
+      {/* Painel de Filtros Avançados */}
+      {showFilters && (
+        <div className="p-4 bg-slate-50 border border-gray-200 rounded-xl animate-in slide-in-from-top-2">
+            <div className="flex flex-col md:flex-row items-end gap-4">
+                
+                {/* Atalho Mês */}
+                <div className="w-full md:w-auto">
+                    <label className="block text-xs font-bold text-gray-500 mb-1 uppercase">Mês de Referência</label>
+                    <input 
+                        type="month" 
+                        value={monthFilter}
+                        onChange={handleMonthSelect}
+                        className="w-full md:w-40 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                </div>
+
+                <div className="hidden md:block h-8 w-px bg-gray-300 mx-2 self-center"></div>
+
+                {/* Período Personalizado */}
+                <div className="flex gap-4 w-full md:w-auto flex-1">
+                    <div className="flex-1">
+                        <label className="block text-xs font-bold text-gray-500 mb-1 uppercase">Início</label>
+                        <input 
+                            type="date" 
+                            value={startDate}
+                            onChange={(e) => { setStartDate(e.target.value); setMonthFilter(''); }}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                    </div>
+                    <div className="flex-1">
+                        <label className="block text-xs font-bold text-gray-500 mb-1 uppercase">Fim</label>
+                        <input 
+                            type="date" 
+                            value={endDate}
+                            onChange={(e) => { setEndDate(e.target.value); setMonthFilter(''); }}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                    </div>
+                </div>
+
+                {/* Botão Limpar */}
+                <button 
+                    onClick={clearFilters}
+                    className="w-full md:w-auto px-4 py-2 text-sm text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors flex items-center justify-center gap-2 border border-transparent hover:border-red-100"
+                    title="Limpar filtros de data"
+                >
+                    <FilterX size={16} />
+                    <span className="md:hidden">Limpar Datas</span>
+                </button>
+            </div>
+            
+            {hasDateFilters && (
+                <div className="mt-3 text-xs text-blue-600 font-medium flex items-center gap-1">
+                    <Calendar size={12} />
+                    Filtrando resultados de 
+                    <span className="font-bold">{startDate ? new Date(startDate).toLocaleDateString('pt-BR') : 'Início'}</span> até 
+                    <span className="font-bold">{endDate ? new Date(endDate).toLocaleDateString('pt-BR') : 'Fim'}</span>
+                </div>
+            )}
+        </div>
+      )}
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -237,6 +361,7 @@ const Dashboard: React.FC = () => {
                     <tr>
                         <th className="px-6 py-4">OS / Veículo</th>
                         <th className="px-6 py-4">Status</th>
+                        <th className="px-6 py-4">Entrada</th>
                         <th className="px-6 py-4 text-right">Receita</th>
                         <th className="px-6 py-4 text-right text-red-600 bg-red-50/30">Custo Peças</th>
                         <th className="px-6 py-4 text-right text-red-600 bg-red-50/30">Custo M.O.</th>
@@ -265,6 +390,9 @@ const Dashboard: React.FC = () => {
                                     {item.status}
                                 </span>
                             </td>
+                            <td className="px-6 py-4 text-gray-500">
+                                {new Date(item.entryDate).toLocaleDateString('pt-BR')}
+                            </td>
                             <td className="px-6 py-4 text-right font-medium text-gray-900">
                                 R$ {item.revenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                             </td>
@@ -290,8 +418,8 @@ const Dashboard: React.FC = () => {
                     ))}
                     {filteredFinancials.length === 0 && (
                         <tr>
-                            <td colSpan={7} className="px-6 py-8 text-center text-gray-400 italic">
-                                Nenhuma Ordem de Serviço encontrada para o filtro selecionado.
+                            <td colSpan={8} className="px-6 py-8 text-center text-gray-400 italic">
+                                Nenhuma Ordem de Serviço encontrada para o período selecionado.
                             </td>
                         </tr>
                     )}
