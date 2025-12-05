@@ -2,10 +2,10 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { Collaborator } from '../types';
-import { Users, Plus, FileText, User, X, Calendar, Printer } from 'lucide-react';
+import { Users, Plus, FileText, User, X, Calendar, Printer, Edit, Trash2 } from 'lucide-react';
 
 const Collaborators: React.FC = () => {
-  const { collaborators, addCollaborator, updateCollaborator, orders } = useAppContext();
+  const { collaborators, addCollaborator, updateCollaborator, removeCollaborator, orders } = useAppContext();
   
   // Form States
   const [showForm, setShowForm] = useState(false);
@@ -19,6 +19,17 @@ const Collaborators: React.FC = () => {
   const [selectedCollab, setSelectedCollab] = useState<Collaborator | null>(null);
   const [reportStartDate, setReportStartDate] = useState('');
   const [reportEndDate, setReportEndDate] = useState('');
+
+  const handleEdit = (collab: Collaborator) => {
+      setFormData(collab);
+      setShowForm(true);
+  };
+
+  const handleDelete = (id: string) => {
+      if (window.confirm("Tem certeza que deseja excluir este colaborador?")) {
+          removeCollaborator(id);
+      }
+  };
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,7 +71,6 @@ const Collaborators: React.FC = () => {
             if (allocation.collaboratorId !== selectedCollab.id) return false;
 
             // Check Date Range (allocation.date is YYYY-MM-DD)
-            // Se a alocação não tiver data específica, usamos a data de entrada da OS como fallback
             const refDate = allocation.date || order.entryDate;
             
             if (reportStartDate && refDate < reportStartDate) return false;
@@ -72,7 +82,7 @@ const Collaborators: React.FC = () => {
           ...allocation,
           orderId: order.id,
           car: `${order.vehicle.brand} ${order.vehicle.model} (${order.vehicle.plate})`,
-          entryDate: allocation.date || order.entryDate // Use allocation date if available for display
+          entryDate: allocation.date || order.entryDate 
         }))
     );
 
@@ -166,7 +176,7 @@ const Collaborators: React.FC = () => {
         </div>
         <button 
           onClick={() => { setFormData({ role: 'Funileiro', status: 'Ativo' }); setShowForm(true); }}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-sm"
         >
           <Plus size={18} />
           Novo Colaborador
@@ -176,7 +186,7 @@ const Collaborators: React.FC = () => {
       {/* Form Modal/Section */}
       {showForm && (
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-6 animate-in slide-in-from-top-2">
-          <h3 className="font-bold text-gray-800 mb-4">Cadastrar/Editar Colaborador</h3>
+          <h3 className="font-bold text-gray-800 mb-4">{formData.id ? 'Editar Colaborador' : 'Cadastrar Colaborador'}</h3>
           <form onSubmit={handleSave} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
             <div className="md:col-span-2">
               <label className="block text-xs font-bold text-gray-500 mb-1">Nome Completo</label>
@@ -223,7 +233,26 @@ const Collaborators: React.FC = () => {
       {/* Collaborators List */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {collaborators.map(colab => (
-          <div key={colab.id} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col hover:shadow-md transition-shadow">
+          <div key={colab.id} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col hover:shadow-md transition-shadow relative group">
+            
+            {/* Action Buttons */}
+            <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button 
+                    onClick={() => handleEdit(colab)}
+                    className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                    title="Editar"
+                >
+                    <Edit size={16} />
+                </button>
+                <button 
+                    onClick={() => handleDelete(colab.id)}
+                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    title="Excluir"
+                >
+                    <Trash2 size={16} />
+                </button>
+            </div>
+
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-lg">
@@ -241,7 +270,7 @@ const Collaborators: React.FC = () => {
             
             <div className="mt-auto pt-4 border-t border-gray-100 flex justify-between items-center">
                <div className="text-xs text-gray-400 flex items-center gap-1">
-                 <User size={12} /> ID: {colab.id}
+                 <User size={12} /> ID: {colab.id.slice(0, 8)}
                </div>
                <button 
                 onClick={() => openReportModal(colab)}

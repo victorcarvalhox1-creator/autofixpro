@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { OSStatus, ServiceOrder } from '../types';
 import { estimateWorkload } from '../services/geminiService';
@@ -7,8 +8,10 @@ import { ArrowLeft, Save, Wand2, Loader2, User, Car, FileText, Calendar } from '
 
 const ServiceOrderCreate: React.FC = () => {
   const navigate = useNavigate();
-  const { addOrder } = useAppContext();
+  const { id } = useParams<{ id: string }>();
+  const { addOrder, getOrderById, updateOrder } = useAppContext();
   const [isEstimating, setIsEstimating] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -28,6 +31,32 @@ const ServiceOrderCreate: React.FC = () => {
     servicesTotal: 0,
     notes: ''
   });
+
+  useEffect(() => {
+    if (id) {
+        const existingOrder = getOrderById(id);
+        if (existingOrder) {
+            setIsEditing(true);
+            setFormData({
+                clientName: existingOrder.client.name,
+                clientPhone: existingOrder.client.phone,
+                clientEmail: existingOrder.client.email,
+                clientInsurer: existingOrder.client.insurer || '',
+                vehicleBrand: existingOrder.vehicle.brand,
+                vehicleModel: existingOrder.vehicle.model,
+                vehiclePlate: existingOrder.vehicle.plate,
+                vehicleColor: existingOrder.vehicle.color,
+                vehicleYear: existingOrder.vehicle.year,
+                description: existingOrder.description,
+                technicalResponsible: existingOrder.technicalResponsible,
+                entryDate: existingOrder.entryDate,
+                deliveryForecast: existingOrder.deliveryForecast,
+                servicesTotal: existingOrder.servicesTotal,
+                notes: existingOrder.notes.join('\n')
+            });
+        }
+    }
+  }, [id, getOrderById]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -69,36 +98,70 @@ const ServiceOrderCreate: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    const newOrder: ServiceOrder = {
-      id: `OS-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`,
-      entryDate: formData.entryDate,
-      deliveryForecast: formData.deliveryForecast,
-      client: {
-        id: `C-${Date.now()}`,
-        name: formData.clientName,
-        phone: formData.clientPhone,
-        email: formData.clientEmail,
-        insurer: formData.clientInsurer
-      },
-      vehicle: {
-        brand: formData.vehicleBrand,
-        model: formData.vehicleModel,
-        plate: formData.vehiclePlate.toUpperCase(),
-        color: formData.vehicleColor,
-        year: Number(formData.vehicleYear)
-      },
-      status: OSStatus.DESMONTAGEM,
-      description: formData.description,
-      technicalResponsible: formData.technicalResponsible || 'A Definir',
-      parts: [],
-      laborAllocations: [], // Inicializa lista vazia de alocação
-      servicesTotal: Number(formData.servicesTotal),
-      partsTotal: 0,
-      finalPrice: Number(formData.servicesTotal), // Will update when parts are added
-      notes: formData.notes ? [formData.notes] : []
-    };
+    if (isEditing && id) {
+        // Fetch original to keep parts and allocations
+        const originalOrder = getOrderById(id);
+        if (!originalOrder) return;
 
-    addOrder(newOrder);
+        const updatedOrder: ServiceOrder = {
+            ...originalOrder,
+            entryDate: formData.entryDate,
+            deliveryForecast: formData.deliveryForecast,
+            client: {
+                ...originalOrder.client,
+                name: formData.clientName,
+                phone: formData.clientPhone,
+                email: formData.clientEmail,
+                insurer: formData.clientInsurer
+            },
+            vehicle: {
+                ...originalOrder.vehicle,
+                brand: formData.vehicleBrand,
+                model: formData.vehicleModel,
+                plate: formData.vehiclePlate.toUpperCase(),
+                color: formData.vehicleColor,
+                year: Number(formData.vehicleYear)
+            },
+            description: formData.description,
+            technicalResponsible: formData.technicalResponsible,
+            servicesTotal: Number(formData.servicesTotal),
+            finalPrice: Number(formData.servicesTotal) + originalOrder.partsTotal, // Recalculate
+            notes: formData.notes ? [formData.notes] : []
+        };
+        updateOrder(updatedOrder);
+    } else {
+        // Create new
+        const newOrder: ServiceOrder = {
+            id: `OS-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`,
+            entryDate: formData.entryDate,
+            deliveryForecast: formData.deliveryForecast,
+            client: {
+                id: `C-${Date.now()}`,
+                name: formData.clientName,
+                phone: formData.clientPhone,
+                email: formData.clientEmail,
+                insurer: formData.clientInsurer
+            },
+            vehicle: {
+                brand: formData.vehicleBrand,
+                model: formData.vehicleModel,
+                plate: formData.vehiclePlate.toUpperCase(),
+                color: formData.vehicleColor,
+                year: Number(formData.vehicleYear)
+            },
+            status: OSStatus.DESMONTAGEM,
+            description: formData.description,
+            technicalResponsible: formData.technicalResponsible || 'A Definir',
+            parts: [],
+            laborAllocations: [], 
+            servicesTotal: Number(formData.servicesTotal),
+            partsTotal: 0,
+            finalPrice: Number(formData.servicesTotal), 
+            notes: formData.notes ? [formData.notes] : []
+        };
+        addOrder(newOrder);
+    }
+
     navigate('/orders');
   };
 
@@ -108,7 +171,7 @@ const ServiceOrderCreate: React.FC = () => {
         <button onClick={() => navigate(-1)} className="p-2 hover:bg-gray-200 rounded-full text-gray-600">
           <ArrowLeft size={24} />
         </button>
-        <h1 className="text-2xl font-bold text-gray-800">Nova Ordem de Serviço</h1>
+        <h1 className="text-2xl font-bold text-gray-800">{isEditing ? `Editar OS #${id}` : 'Nova Ordem de Serviço'}</h1>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -249,7 +312,7 @@ const ServiceOrderCreate: React.FC = () => {
                 className="w-full sm:w-auto px-8 py-3 rounded-lg text-white bg-blue-600 font-bold hover:bg-blue-700 shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2"
             >
                 <Save size={20} />
-                Salvar Ordem de Serviço
+                {isEditing ? 'Atualizar OS' : 'Salvar Ordem de Serviço'}
              </button>
         </div>
 

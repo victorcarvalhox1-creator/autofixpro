@@ -2,10 +2,10 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, Plus, Filter, Calendar, X, FilterX } from 'lucide-react';
+import { Search, Plus, Filter, Calendar, X, FilterX, Edit, Trash2, Eye } from 'lucide-react';
 
 const ServiceOrderList: React.FC = () => {
-  const { orders } = useAppContext();
+  const { orders, removeOrder } = useAppContext();
   const navigate = useNavigate();
   
   // Estados de Filtro
@@ -64,6 +64,18 @@ const ServiceOrderList: React.FC = () => {
     setMonthFilter('');
     setSearchTerm('');
   };
+
+  const handleDelete = (e: React.MouseEvent, id: string) => {
+      e.preventDefault(); // prevent navigation
+      if(window.confirm("Tem certeza que deseja excluir esta Ordem de Serviço?")) {
+          removeOrder(id);
+      }
+  }
+
+  const handleEdit = (e: React.MouseEvent, id: string) => {
+      e.preventDefault();
+      navigate(`/orders/edit/${id}`);
+  }
 
   const hasActiveFilters = startDate || endDate || monthFilter;
 
@@ -182,7 +194,7 @@ const ServiceOrderList: React.FC = () => {
                 <th className="px-6 py-4 whitespace-nowrap hidden md:table-cell">Entrada</th>
                 <th className="px-6 py-4 whitespace-nowrap hidden md:table-cell">Previsão</th>
                 <th className="px-6 py-4 whitespace-nowrap text-right">Total</th>
-                <th className="px-6 py-4 whitespace-nowrap"></th>
+                <th className="px-6 py-4 whitespace-nowrap text-right">Ações</th>
                 </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -210,9 +222,29 @@ const ServiceOrderList: React.FC = () => {
                         R$ {os.finalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </td>
                     <td className="px-6 py-4 text-right whitespace-nowrap">
-                        <Link to={`/orders/${os.id}`} className="text-blue-600 hover:text-blue-800 font-medium text-sm md:opacity-0 group-hover:opacity-100 transition-opacity">
-                            Detalhes
-                        </Link>
+                        <div className="flex items-center justify-end gap-2">
+                             <Link 
+                                to={`/orders/${os.id}`} 
+                                className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                title="Ver Detalhes"
+                             >
+                                <Eye size={18} />
+                             </Link>
+                             <button
+                                onClick={(e) => handleEdit(e, os.id)}
+                                className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                title="Editar"
+                             >
+                                <Edit size={18} />
+                             </button>
+                             <button
+                                onClick={(e) => handleDelete(e, os.id)}
+                                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                title="Excluir"
+                             >
+                                <Trash2 size={18} />
+                             </button>
+                        </div>
                     </td>
                 </tr>
                 ))}

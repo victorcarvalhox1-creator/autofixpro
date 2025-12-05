@@ -9,7 +9,7 @@ interface AppContextType {
   isAuthenticated: boolean;
   user: string | null;
   session: Session | null;
-  login: (u: string, p: string) => Promise<{ error: any }>; // Changed signature
+  login: (u: string, p: string) => Promise<{ error: any }>; 
   logout: () => void;
 
   // Data
@@ -18,13 +18,22 @@ interface AppContextType {
   isLoading: boolean;
   
   addOrder: (order: ServiceOrder) => void;
+  updateOrder: (order: ServiceOrder) => void; // Update full object
+  removeOrder: (id: string) => void;
   updateOrderStatus: (id: string, status: OSStatus) => void;
+  
   addPartToOrder: (orderId: string, part: Part) => void;
+  updatePart: (orderId: string, part: Part) => void;
+  removePartFromOrder: (orderId: string, partId: string) => void;
   updatePartStatus: (orderId: string, partId: string, status: any) => void;
+  
   addLaborAllocation: (orderId: string, allocation: LaborAllocation) => void;
   removeLaborAllocation: (orderId: string, allocationId: string) => void;
+  
   addCollaborator: (collaborator: Collaborator) => void;
   updateCollaborator: (collaborator: Collaborator) => void;
+  removeCollaborator: (id: string) => void;
+  
   getStats: () => DashboardStats;
   getOrderById: (id: string) => ServiceOrder | undefined;
 }
@@ -95,7 +104,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       if (collabsError) throw collabsError;
       
       if (collabsData) {
-        // Map the JSONB 'content' column back to the object
         setCollaborators(collabsData.map((row: any) => row.content as Collaborator));
       }
 
@@ -107,10 +115,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       if (ordersError) throw ordersError;
 
       if (ordersData) {
-        // Map the JSONB 'content' column back to the object
         const mappedOrders: ServiceOrder[] = ordersData.map((row: any) => {
              const orderContent = row.content as ServiceOrder;
-             // Ensure ID matches just in case
              return { ...orderContent, id: row.id };
         });
         setOrders(mappedOrders);
@@ -130,7 +136,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
 
   // --- HELPER PARA ATUALIZAR JSONB ---
-  // Como estamos usando JSONB, precisamos salvar o objeto inteiro novamente
   const saveOrderToSupabase = async (order: ServiceOrder) => {
       if (!session?.user) return;
       try {
@@ -146,7 +151,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       }
   }
 
-  // --- ACTIONS ---
+  // --- ORDER ACTIONS ---
 
   const addOrder = async (order: ServiceOrder) => {
     setOrders(prev => [...prev, order]);
@@ -166,6 +171,22 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   };
 
+  const updateOrder = async (order: ServiceOrder) => {
+    setOrders(prev => prev.map(o => o.id === order.id ? order : o));
+    await saveOrderToSupabase(order);
+  };
+
+  const removeOrder = async (id: string) => {
+    setOrders(prev => prev.filter(o => o.id !== id));
+    
+    if (!session?.user) return;
+    try {
+      await supabase.from('orders').delete().eq('id', id).eq('user_id', session.user.id);
+    } catch (err) {
+      console.error("Erro ao deletar OS:", err);
+    }
+  };
+
   const updateOrderStatus = async (id: string, status: OSStatus) => {
     let updatedOrder: ServiceOrder | null = null;
     
@@ -182,24 +203,63 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   };
 
+  // --- PARTS ACTIONS ---
+
+  const recalculateOrderTotals = (order: ServiceOrder): ServiceOrder => {
+      const partsTotal = order.parts.reduce((acc, p) => acc + (p.priceUnit * p.quantity), 0);
+      const finalPrice = order.servicesTotal + partsTotal;
+      return { ...order, partsTotal, finalPrice };
+  };
+
   const addPartToOrder = async (orderId: string, part: Part) => {
     let updatedOrder: ServiceOrder | null = null;
 
     setOrders(prev => prev.map(o => {
       if (o.id === orderId) {
-        const newParts = [...o.parts, part];
-        const partsTotal = newParts.reduce((acc, p) => acc + (p.priceUnit * p.quantity), 0);
-        const finalPrice = o.servicesTotal + partsTotal;
-        
-        updatedOrder = { ...o, parts: newParts, partsTotal, finalPrice };
+        const newOrder = { ...o, parts: [...o.parts, part] };
+        updatedOrder = recalculateOrderTotals(newOrder);
         return updatedOrder;
       }
       return o;
     }));
 
-    if (updatedOrder) {
-        await saveOrderToSupabase(updatedOrder);
-    }
+    if (updatedOrder) await saveOrderToSupabase(updatedOrder);
+  };
+
+  const updatePart = async (orderId: string, part: Part) => {
+      let updatedOrder: ServiceOrder | null = null;
+
+      setOrders(prev => prev.map(o => {
+          if (o.id === orderId) {
+              const newOrder = {
+                  ...o,
+                  parts: o.parts.map(p => p.id === part.id ? part : p)
+              };
+              updatedOrder = recalculateOrderTotals(newOrder);
+              return updatedOrder;
+          }
+          return o;
+      }));
+
+      if (updatedOrder) await saveOrderToSupabase(updatedOrder);
+  }
+
+  const removePartFromOrder = async (orderId: string, partId: string) => {
+      let updatedOrder: ServiceOrder | null = null;
+
+      setOrders(prev => prev.map(o => {
+          if (o.id === orderId) {
+              const newOrder = {
+                  ...o,
+                  parts: o.parts.filter(p => p.id !== partId)
+              };
+              updatedOrder = recalculateOrderTotals(newOrder);
+              return updatedOrder;
+          }
+          return o;
+      }));
+
+      if (updatedOrder) await saveOrderToSupabase(updatedOrder);
   };
 
   const updatePartStatus = async (orderId: string, partId: string, status: any) => {
@@ -216,10 +276,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       return o;
     }));
 
-    if (updatedOrder) {
-        await saveOrderToSupabase(updatedOrder);
-    }
+    if (updatedOrder) await saveOrderToSupabase(updatedOrder);
   };
+
+  // --- LABOR ALLOCATION ACTIONS ---
 
   const addLaborAllocation = async (orderId: string, allocation: LaborAllocation) => {
     let updatedOrder: ServiceOrder | null = null;
@@ -232,9 +292,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       return o;
     }));
 
-    if (updatedOrder) {
-        await saveOrderToSupabase(updatedOrder);
-    }
+    if (updatedOrder) await saveOrderToSupabase(updatedOrder);
   };
 
   const removeLaborAllocation = async (orderId: string, allocationId: string) => {
@@ -248,16 +306,15 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       return o;
     }));
 
-    if (updatedOrder) {
-        await saveOrderToSupabase(updatedOrder);
-    }
+    if (updatedOrder) await saveOrderToSupabase(updatedOrder);
   };
+
+  // --- COLLABORATOR ACTIONS ---
 
   const addCollaborator = async (collaborator: Collaborator) => {
     setCollaborators(prev => [...prev, collaborator]);
 
     if (!session?.user) return;
-
     try {
       await supabase.from('collaborators').insert({
         id: collaborator.id,
@@ -273,13 +330,23 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setCollaborators(prev => prev.map(c => c.id === collaborator.id ? collaborator : c));
 
     if (!session?.user) return;
-
     try {
       await supabase.from('collaborators').update({
         content: collaborator
       }).eq('id', collaborator.id).eq('user_id', session.user.id);
     } catch (err) {
       console.error("Erro ao atualizar colaborador:", err);
+    }
+  };
+
+  const removeCollaborator = async (id: string) => {
+    setCollaborators(prev => prev.filter(c => c.id !== id));
+
+    if (!session?.user) return;
+    try {
+        await supabase.from('collaborators').delete().eq('id', id).eq('user_id', session.user.id);
+    } catch (err) {
+        console.error("Erro ao deletar colaborador:", err);
     }
   };
 
@@ -305,13 +372,18 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         collaborators,
         isLoading,
         addOrder, 
+        updateOrder,
+        removeOrder,
         updateOrderStatus, 
         addPartToOrder, 
+        updatePart,
+        removePartFromOrder,
         updatePartStatus,
         addLaborAllocation,
         removeLaborAllocation,
         addCollaborator,
         updateCollaborator,
+        removeCollaborator,
         getStats, 
         getOrderById 
     }}>

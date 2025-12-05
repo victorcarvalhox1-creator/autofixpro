@@ -26,6 +26,7 @@ const ProtectedRoutes: React.FC = () => {
         <Route path="/kanban" element={<Kanban />} />
         <Route path="/orders" element={<ServiceOrderList />} />
         <Route path="/orders/new" element={<ServiceOrderCreate />} />
+        <Route path="/orders/edit/:id" element={<ServiceOrderCreate />} />
         <Route path="/orders/:id" element={<ServiceOrderDetails />} />
         <Route path="/collaborators" element={<Collaborators />} />
         <Route path="*" element={<Navigate to="/" replace />} />
