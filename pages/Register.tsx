@@ -43,21 +43,30 @@ const Register: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: {
-          emailRedirectTo: window.location.origin,
-        }
       });
 
-      if (error) throw error;
+      console.log("Supabase SignUp Response:", { data, error });
 
-      setSuccessMsg('Cadastro iniciado! Verifique seu e-mail (inclusive Spam).');
+      if (error) {
+         throw error;
+      }
+      
+      // Proteção do Supabase contra Enumeração de E-mails
+      // Se o usuário tentar se cadastrar de novo e já existir, o Supabase não retorna 'error' 
+      // para não confirmar que o e-mail existe a um atacante, mas as 'identities' vêm vazias.
+      if (data?.user && data.user.identities && data.user.identities.length === 0) {
+         throw new Error("Este e-mail já está cadastrado ou aguardando confirmação.");
+      }
+
+      setSuccessMsg('Cadastro iniciado! Verifique seu e-mail pelo código de 8 dígitos.');
       setStep('otp');
       setResendTimer(60);
     } catch (err: any) {
-      setError(err.message || 'Erro ao cadastrar.');
+      console.error("Cadastro falhou:", err);
+      setError(err.message || 'Erro ao tentar se conectar ao servidor.');
     } finally {
       setIsLoading(false);
     }
@@ -74,9 +83,6 @@ const Register: React.FC = () => {
       const { error } = await supabase.auth.resend({
         type: 'signup',
         email: email,
-        options: {
-          emailRedirectTo: window.location.origin,
-        }
       });
 
       if (error) throw error;
@@ -124,7 +130,7 @@ const Register: React.FC = () => {
         <div 
             className="absolute inset-0 bg-cover bg-center z-0"
             style={{ 
-                backgroundImage: "url('https://escwcpcpdbwfdairdacp.supabase.co/storage/v1/object/sign/VictorCarvalho/_MG_4771.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iNzhjOWUxYy03ODJhLTRlMGEtODRjOC1iMmFhYWNiMmYxNjYiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJWaWN0b3JDYXJ2YWxoby9fTUdfNDc3MS5qcGciLCJpYXQiOjE3NjM3NjgzNTAsImV4cCI6MTc5NTMwNDM1MH0.aR8TbdKwi0aIHBPpZXjkunF1CG2aHl4C97iWG5WAU3o')" 
+                backgroundImage: "url('https://images.unsplash.com/photo-1562259929-b7e181d8d012?auto=format&fit=crop&q=80&w=1920')" 
             }}
         ></div>
         <div className="absolute inset-0 bg-gradient-to-br from-blue-900/90 to-purple-900/80 z-10"></div>
@@ -247,7 +253,7 @@ const Register: React.FC = () => {
                                 value={otp}
                                 onChange={(e) => setOtp(e.target.value)}
                                 className="block w-full px-4 py-4 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-center tracking-[0.5em] text-2xl font-mono font-bold transition-all"
-                                placeholder="123456"
+                                placeholder="12345678"
                                 maxLength={8}
                             />
                         </div>

@@ -1,5 +1,6 @@
 {
   "name": "AutoFix Pro - Gestão de Funilaria e Pintura",
   "description": "Sistema completo de gestão de Ordens de Serviço, Peças e Financeiro para oficinas de funilaria e pintura com inteligência artificial.",
-  "requestFramePermissions": []
+  "requestFramePermissions": [],
+  "majorCapabilities": []
 }

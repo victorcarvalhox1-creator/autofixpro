@@ -43,7 +43,7 @@ const Login: React.FC = () => {
         <div 
             className="absolute inset-0 bg-cover bg-center z-0"
             style={{ 
-                backgroundImage: "url('https://escwcpcpdbwfdairdacp.supabase.co/storage/v1/object/sign/VictorCarvalho/_MG_5619.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iNzhjOWUxYy03ODJhLTRlMGEtODRjOC1iMmFhYWNiMmYxNjYiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJWaWN0b3JDYXJ2YWxoby9fTUdfNTYxOS5qcGciLCJpYXQiOjE3NjM3NjQyNzMsImV4cCI6MTc5NTMwMDI3M30.FolA1jbhFJox_f8YIG1YvASWiMluHIYn128xyuRd37I')" 
+                backgroundImage: "url('https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=1920')" 
             }}
         ></div>
         {/* Gradiente Overlay */}
