@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { Wrench, Lock, User, ArrowRight, AlertCircle } from 'lucide-react';
+import { BrandLogo } from '../components/BrandLogo';
 
 const Login: React.FC = () => {
   const { login } = useAppContext();
@@ -47,27 +48,31 @@ const Login: React.FC = () => {
             }}
         ></div>
         {/* Gradiente Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-900/90 to-purple-900/80 z-10"></div>
+        <div className="absolute inset-0 bg-brand-midnight/90 z-10 mix-blend-multiply"></div>
         
-        <div className="relative z-20 flex flex-col justify-center px-16 text-white">
-            <div className="bg-white/10 backdrop-blur-md w-20 h-20 rounded-2xl flex items-center justify-center mb-8 border border-white/20 shadow-2xl">
-                <Wrench size={40} className="text-white" />
+        <div className="relative z-20 flex flex-col justify-center px-16 text-white h-full pb-16">
+            <div className="mb-12">
+               <BrandLogo dark horizontal={false} showSubtitle className="scale-[1.2] origin-left" />
             </div>
-            <h1 className="text-5xl font-bold mb-6 leading-tight">
-                Gestão Inteligente para sua Oficina
+            <h1 className="text-4xl lg:text-5xl font-bold font-mono text-brand-snow mb-6 leading-tight">
+                Inteligência em dados para o seu negócio
             </h1>
-            <p className="text-xl text-blue-100 max-w-lg leading-relaxed">
-                Otimize processos, controle o financeiro e aumente a produtividade da sua funilaria com o AutoFix Pro.
+            <p className="text-lg text-brand-gray-light font-sans max-w-lg leading-relaxed">
+                Junte-se a dezenas de oficinas que utilizam inteligência para gerenciar serviços, controle financeiro e aumentar a produtividade.
             </p>
         </div>
       </div>
 
       {/* Lado Direito - Formulário */}
-      <div className="w-full lg:w-[40%] flex items-center justify-center bg-white p-8">
+      <div className="w-full lg:w-[40%] flex items-center justify-center bg-brand-gray-bg p-8 font-sans">
         <div className="w-full max-w-md space-y-8">
+            <div className="lg:hidden flex justify-center mb-8">
+                <BrandLogo horizontal={false} showSubtitle />
+            </div>
+
             <div className="text-center lg:text-left">
-                <h2 className="text-3xl font-bold text-gray-900">Bem-vindo de volta</h2>
-                <p className="text-gray-500 mt-2">Entre com suas credenciais para acessar.</p>
+                <h2 className="text-3xl font-mono font-bold text-brand-midnight tracking-tight">Bem-vindo de volta</h2>
+                <p className="text-brand-gray mt-2 font-sans">Entre com suas credenciais para acessar.</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
