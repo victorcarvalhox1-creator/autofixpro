@@ -11,6 +11,7 @@ import ServiceOrderCreate from './pages/ServiceOrderCreate';
 import Collaborators from './pages/Collaborators';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
 
 const ProtectedRoutes: React.FC = () => {
   const { isAuthenticated, isLoading } = useAppContext();
@@ -53,6 +54,7 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/*" element={<ProtectedRoutes />} />
         </Routes>
       </HashRouter>

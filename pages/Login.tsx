@@ -104,7 +104,7 @@ const Login: React.FC = () => {
                 <div>
                     <div className="flex justify-between items-center mb-1.5">
                         <label className="block text-sm font-semibold text-gray-700">Senha</label>
-                        <a href="#" className="text-sm text-blue-600 hover:underline font-medium">Esqueceu a senha?</a>
+                        <Link to="/forgot-password" className="text-sm text-blue-600 hover:underline font-medium">Esqueceu a senha?</Link>
                     </div>
                     <div className="relative group">
                         <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">

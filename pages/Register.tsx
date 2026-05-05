@@ -2,20 +2,30 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
-import { Wrench, Mail, Lock, ArrowRight, Check, AlertCircle, RefreshCw } from 'lucide-react';
+import { Mail, Lock, ArrowRight, Check, AlertCircle, RefreshCw, Camera } from 'lucide-react';
+import { BrandLogo } from '../components/BrandLogo';
 
 const Register: React.FC = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState<'register' | 'otp'>('register');
-  
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [otp, setOtp] = useState('');
-  
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAvatarFile(file);
+    setAvatarPreview(URL.createObjectURL(file));
+  };
 
   // Estado para o temporizador de reenvio
   const [resendTimer, setResendTimer] = useState(0);
@@ -48,7 +58,17 @@ const Register: React.FC = () => {
         password,
       });
 
-      console.log("Supabase SignUp Response:", { data, error });
+      console.group('%c[Register] supabase.auth.signUp()', 'color:#F59E0B;font-weight:bold');
+      console.log('Email:', email);
+      console.log('Data:', data);
+      if (error) {
+        console.error('Erro completo:', error);
+        console.error('Mensagem:', error.message);
+        console.error('Status:', (error as any).status);
+        console.error('Código:', (error as any).code);
+        console.error('Detalhes:', JSON.stringify(error, null, 2));
+      }
+      console.groupEnd();
 
       if (error) {
          throw error;
@@ -65,7 +85,12 @@ const Register: React.FC = () => {
       setStep('otp');
       setResendTimer(60);
     } catch (err: any) {
-      console.error("Cadastro falhou:", err);
+      console.group('%c[Register] FALHA no cadastro', 'color:red;font-weight:bold');
+      console.error('Mensagem:', err.message);
+      console.error('Status:', err.status);
+      console.error('Código:', err.code);
+      console.error('Objeto completo:', JSON.stringify(err, null, 2));
+      console.groupEnd();
       setError(err.message || 'Erro ao tentar se conectar ao servidor.');
     } finally {
       setIsLoading(false);
@@ -110,12 +135,25 @@ const Register: React.FC = () => {
 
       if (error) throw error;
 
+      if (data.session && avatarFile) {
+        const userId = data.session.user.id;
+        const ext = avatarFile.name.split('.').pop();
+        const path = `${userId}.${ext}`;
+        const { error: uploadError } = await supabase.storage
+          .from('avatars')
+          .upload(path, avatarFile, { upsert: true });
+        if (!uploadError) {
+          const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path);
+          await supabase.auth.updateUser({ data: { avatar_url: urlData.publicUrl } });
+        }
+      }
+
       if (data.session) {
         navigate('/');
       } else {
-          navigate('/login');
+        navigate('/login');
       }
-      
+
     } catch (err: any) {
       setError(err.message || 'Código inválido ou expirado.');
     } finally {
@@ -125,26 +163,23 @@ const Register: React.FC = () => {
 
   return (
     <div className="min-h-screen flex w-full">
-      {/* Lado Esquerdo - Imagem (Escondido em mobile) */}
+      {/* Lado Esquerdo */}
       <div className="hidden lg:flex lg:w-[60%] relative bg-slate-900 overflow-hidden">
-        <div 
-            className="absolute inset-0 bg-cover bg-center z-0"
-            style={{ 
-                backgroundImage: "url('https://images.unsplash.com/photo-1562259929-b7e181d8d012?auto=format&fit=crop&q=80&w=1920')" 
-            }}
-        ></div>
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-900/90 to-purple-900/80 z-10"></div>
-        
-        <div className="relative z-20 flex flex-col justify-center px-16 text-white">
-            <div className="bg-white/10 backdrop-blur-md w-20 h-20 rounded-2xl flex items-center justify-center mb-8 border border-white/20 shadow-2xl">
-                <Wrench size={40} className="text-white" />
-            </div>
-            <h1 className="text-5xl font-bold mb-6 leading-tight">
-                Comece sua jornada com o AutoFix Pro
-            </h1>
-            <p className="text-xl text-blue-100 max-w-lg leading-relaxed">
-                Junte-se a oficinas modernas que utilizam inteligência artificial para gerenciar serviços e faturar mais.
-            </p>
+        <div
+          className="absolute inset-0 bg-cover bg-center z-0"
+          style={{ backgroundImage: "url('https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=1920')" }}
+        />
+        <div className="absolute inset-0 bg-brand-midnight/90 z-10 mix-blend-multiply" />
+        <div className="relative z-20 flex flex-col justify-center px-16 text-white h-full pb-16">
+          <div className="mb-12">
+            <BrandLogo dark horizontal={false} showSubtitle className="scale-[1.2] origin-left" />
+          </div>
+          <h1 className="text-4xl lg:text-5xl font-bold font-mono text-brand-snow mb-6 leading-tight">
+            Comece sua jornada conosco
+          </h1>
+          <p className="text-lg text-brand-gray-light font-sans max-w-lg leading-relaxed">
+            Junte-se a oficinas modernas que utilizam inteligência para gerenciar serviços, controle financeiro e aumentar a produtividade.
+          </p>
         </div>
       </div>
 
@@ -172,6 +207,30 @@ const Register: React.FC = () => {
 
             {step === 'register' ? (
                 <form onSubmit={handleRegister} className="space-y-5">
+
+                {/* Avatar picker */}
+                <div className="flex flex-col items-center gap-2">
+                  <label htmlFor="avatar-upload" className="cursor-pointer group relative">
+                    <div className="w-24 h-24 rounded-full border-2 border-dashed border-gray-300 group-hover:border-blue-500 transition-colors overflow-hidden flex items-center justify-center bg-gray-50">
+                      {avatarPreview ? (
+                        <img src={avatarPreview} alt="Preview" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="flex flex-col items-center gap-1 text-gray-400 group-hover:text-blue-500 transition-colors">
+                          <Camera size={28} />
+                          <span className="text-xs font-medium">Foto</span>
+                        </div>
+                      )}
+                    </div>
+                    {avatarPreview && (
+                      <div className="absolute bottom-0 right-0 w-7 h-7 bg-blue-600 rounded-full flex items-center justify-center border-2 border-white">
+                        <Camera size={13} className="text-white" />
+                      </div>
+                    )}
+                  </label>
+                  <input id="avatar-upload" type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
+                  <span className="text-xs text-gray-400">Foto de perfil (opcional)</span>
+                </div>
+
                 <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-1.5">Email</label>
                     <div className="relative group">
